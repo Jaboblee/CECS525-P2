@@ -66,7 +66,7 @@ extern int invar;               //assembly variables
 extern int outvar;
 
 //Serial buffers
-const unsigned int inBuffsize = 256;
+#define inBuffsize 256
 volatile unsigned int inBuffstart;
 volatile unsigned int inBuffend;
 char inptBuff[inBuffsize];
