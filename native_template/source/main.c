@@ -520,7 +520,7 @@ void irq_handler(void)
 }
 
 void printBuff(void) {
-	while (inBuffstart != inBuffstart) {
+	while (inBuffstart != inBuffend) {
 		uart_putc(inptBuff[inBuffstart]);
 		inBuffstart++;
 		if (inBuffstart >= inBuffsize) {inBuffstart = 0;}
