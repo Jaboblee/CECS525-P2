@@ -59,9 +59,17 @@ void reboot();
 void enable_irq_57();
 void disable_irq_57();
 void testdelay();
+
+void printBuff();
+
 extern int invar;               //assembly variables
 extern int outvar;
 
+//Serial buffers
+const unsigned int inBuffsize = 256;
+volatile unsigned int inBuffstart;
+volatile unsigned int inBuffend;
+char inptBuff[inBuffsize];
 
 
 //Pointers to some of the BCM2835 peripheral register bases
@@ -464,6 +472,11 @@ int logon(void)
 
 void kernel_main() 
 {
+//	inBuffsize = 256;
+//	inptBuff = (char *) malloc(sizeof(char)*inBuffsize);
+	inBuffstart = 0;
+	inBuffend = 0;
+	
 	uart_init();
 	enable_irq_57();
 	enable_arm_irq();
@@ -474,18 +487,42 @@ void kernel_main()
 	
 	while (1) 
 	{
-	uart_putc(' ');
-	uart_putc('A');
-	uart_putc(' ');
-	testdelay();
+		uart_putc(' ');
+		uart_putc('A');
+		uart_putc(' ');
+		testdelay();
+		
+		if (inBuffend != inBuffstart) {							//If buffer isn't empty
+			if (inBuffend < inBuffstart) {						//If buffer has wrapped around (circular buffer)
+				if ((255 - inBuffstart) + inBuffend > 5) {		//If buffer has more than 5 elements
+					printBuff();									
+				}
+			} else {
+				if (inBuffend - inBuffstart > 5) {				//If buffer has more than 5 elements
+					printBuff();
+				}
+			}
+				
+		}
 	}
 }
 
 void irq_handler(void)
 {
-    uint8_t c  = uart_readc();
-	uart_putc(' ');
-	uart_putc(c);
-	uart_putc(' ');
+    inptBuff[inBuffend]  = uart_readc();
+	inBuffend++;
+	if (inBuffend >= inBuffsize) {inBuffend = 0;}
+	//No checks if buffer overflows
+	
+//	uart_putc(' ');
+//	uart_putc(c);
+
 }
 
+void printBuff(void) {
+	while (inBuffstart != inBuffstart) {
+		uart_putc(inptBuff[inBuffstart]);
+		inBuffstart++;
+		if (inBuffstart >= inBuffsize) {inBuffstart = 0;}
+	}
+}
