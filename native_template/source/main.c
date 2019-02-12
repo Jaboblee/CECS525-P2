@@ -92,9 +92,13 @@ void testdelay(void)
 	while (count > 0) {count = count - 1;}
 }
 
-void enable_irq_57(void)
-{
+void enable_irq_57(void) {
 	mmio_write(0x2000B214, 0x02000000);		//BCM2835-Page 175
+}
+
+void enable_irq_57_tx(void) {
+	uint32_t prev = mimo_read(0x2000B214);
+
 }
 
 void disable_irq_57(void)
@@ -514,7 +518,10 @@ void kernel_main()
 
 void irq_handler(void)
 {
-    rxbuff[rxbuff_e]  = uart_readc();
+	if (txbuff_b != txbuff_e) {	//Do transmit stuff
+	
+	}
+	rxbuff[rxbuff_e]  = uart_readc();
 	rxbuff_e++;
 	if (rxbuff_e >= rxbuffsize) {rxbuff_e = 0;}
 	//No checks if buffer overflows
