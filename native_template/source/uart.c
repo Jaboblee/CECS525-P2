@@ -91,14 +91,14 @@ void uart_init()
     mmio_write(UART0_IBRD, 1);
     mmio_write(UART0_FBRD, 40);
  
-    // Disable FIFO. Make 8 bit data transmission (1 stop bit, no parity).			//Enable FIFO
-    mmio_write(UART0_LCRH,(1 << 4) | (1 << 5) | (1 << 6));
+    // Disable FIFO. Make 8 bit data transmission (1 stop bit, no parity).		//Enable FIFO
+    mmio_write(UART0_LCRH, (1 << 4) | (1 << 5) | (1 << 6));
  
-	// Set FIFO interrupt levels, not sure if needed
-	//mimo_write(UART0_IFLS, );
+    // Set FIFO interrupt levels, not sure if needed
+    mimo_write(UART0_IFLS, 0x0000);
  
-    // Engineer the Interrupt for UART0 Receive											//Enable interrupt for UART0 TX
-	mmio_write(UART0_IMSC, (1 << 4) | (1 << 5));
+    // Engineer the Interrupt for UART0 Receive						//Enable interrupt for UART0 TX
+    mmio_write(UART0_IMSC, (1 << 4) | (1 << 5));
  
     // Enable UART0, receive & transfer part of UART.
     mmio_write(UART0_CR, (1 << 0) | (1 << 8) | (1 << 9));
