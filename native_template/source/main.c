@@ -60,17 +60,22 @@ void enable_irq_57();
 void disable_irq_57();
 void testdelay();
 
-void printBuff();
+void buff_print();
+char buff_readc();
 
 extern int invar;               //assembly variables
 extern int outvar;
 
 //Serial buffers
-#define inBuffsize 256
-volatile unsigned int inBuffstart;
-volatile unsigned int inBuffend;
-char inptBuff[inBuffsize];
+#define rxbuffsize 256
+char rxbuff[rxbuffsize];
+volatile unsigned int rxbuff_b;
+volatile unsigned int rxbuff_e;
 
+#define txbuffsize 256
+char txbuff[txbuffsize];
+volatile unsigned int txbuff_b;
+volatile unsigned int txbuff_e;
 
 //Pointers to some of the BCM2835 peripheral register bases
 volatile uint32_t* bcm2835_gpio = (uint32_t*)BCM2835_GPIO_BASE;
@@ -89,7 +94,7 @@ void testdelay(void)
 
 void enable_irq_57(void)
 {
-	mmio_write(0x2000B214, 0x02000000);
+	mmio_write(0x2000B214, 0x02000000);		//BCM2835-Page 175
 }
 
 void disable_irq_57(void)
@@ -134,7 +139,7 @@ void DATE(void)
 	uint8_t c = '\0';
 	while (c == '\0') 
 	{
-		c = uart_readc();
+		c = buff_readc();
 	}
 	switch (c) {
 		case 'S' | 's':
@@ -182,7 +187,7 @@ void TIME(void)
 	uint8_t c = '\0';
 	while (c == '\0') 
 	{
-		c = uart_readc();
+		c = buff_readc();
 	}
 	switch (c) {
 		case 'S' | 's':
@@ -191,9 +196,9 @@ void TIME(void)
 			bcm2835_i2c_setSlaveAddress(0x68);
 			uart_puts("\r\nSet 24 Hour Time");
 			uart_puts("\r\nType Hours (two digits 00-23): ");
-			tens = ((uart_readc()-48) << 4) | 0x0F;
+			tens = ((buff_readc()-48) << 4) | 0x0F;
 			uart_putc((tens >> 4)+48);
-			ones = (uart_readc()-48) | 0xF0;
+			ones = (buff_readc()-48) | 0xF0;
 			uart_putc((ones & 0x0F)+48);
 			if (BCDtoUint8(tens & ones) < 0 || BCDtoUint8(tens & ones) > 23) 
 			{
@@ -207,9 +212,9 @@ void TIME(void)
 			}			
 			bcm2835_i2c_write(HRS,*buffer);
 			uart_puts("\r\nType Minutes (two digits 00-59): ");
-			tens = ((uart_readc()-48) << 4) | 0x0F;
+			tens = ((buff_readc()-48) << 4) | 0x0F;
 			uart_putc((tens >> 4)+48);
-			ones = (uart_readc()-48) | 0xF0;
+			ones = (buff_readc()-48) | 0xF0;
 			uart_putc((ones & 0x0F)+48);
 			if (BCDtoUint8(tens & ones) < 0 || BCDtoUint8(tens & ones) > 59) 
 			{
@@ -223,9 +228,9 @@ void TIME(void)
 			}			
 			bcm2835_i2c_write(MINS,*buffer);			
 			uart_puts("\r\nType Seconds (two digits 00-59): ");
-			tens = ((uart_readc()-48) << 4) | 0x0F;
+			tens = ((buff_readc()-48) << 4) | 0x0F;
 			uart_putc((tens >> 4)+48);
-			ones = (uart_readc()-48) | 0xF0;
+			ones = (buff_readc()-48) | 0xF0;
 			uart_putc((ones & 0x0F)+48);
 			if (BCDtoUint8(tens & ones) < 0 || BCDtoUint8(tens & ones) > 59) 
 			{
@@ -266,15 +271,15 @@ void ALARM(void)
 	uint8_t c = '\0';
 	while (c == '\0') 
 	{
-		c = uart_readc();
+		c = buff_readc();
 	}
 	switch (c) {
 		case 'S' | 's':
 			uart_puts("\r\nSet Seconds Alarm");
 			uart_puts("\r\nType Starting Alarm Seconds (two digits 05-59): ");
-			tens = ((uart_readc()-48) << 4) | 0x0F;
+			tens = ((buff_readc()-48) << 4) | 0x0F;
 			uart_putc((tens >> 4)+48);
-			ones = (uart_readc()-48) | 0xF0;
+			ones = (buff_readc()-48) | 0xF0;
 			uart_putc((ones & 0x0F)+48);
 			if (BCDtoUint8(tens & ones) < 5 || BCDtoUint8(tens & ones) > 59) 
 			{
@@ -342,7 +347,7 @@ void CANCOM(void)
 	uint8_t c = '\0';
 	while (c == '\0') 
 	{
-		c = uart_readc();
+		c = buff_readc();
 	}
 	switch (c) {
 		case 'T' | 't':
@@ -422,7 +427,7 @@ void command(void)
 	uart_puts(MS3);
 	uint8_t c = '\0';
 	while (c == '\0') {
-		c = uart_readc();
+		c = buff_readc();
 	}
 	switch (c) {
 		case 'C' | 'c':
@@ -472,10 +477,10 @@ int logon(void)
 
 void kernel_main() 
 {
-//	inBuffsize = 256;
-//	inptBuff = (char *) malloc(sizeof(char)*inBuffsize);
-	inBuffstart = 0;
-	inBuffend = 0;
+//	rxbuffsize = 256;
+//	rxbuff = (char *) malloc(sizeof(char)*rxbuffsize);
+	rxbuff_b = 0;
+	rxbuff_e = 0;
 	
 	uart_init();
 	enable_irq_57();
@@ -492,14 +497,14 @@ void kernel_main()
 		uart_putc(' ');
 		testdelay();
 		
-		if (inBuffend != inBuffstart) {							//If buffer isn't empty
-			if (inBuffend < inBuffstart) {						//If buffer has wrapped around (circular buffer)
-				if ((255 - inBuffstart) + inBuffend > 5) {		//If buffer has more than 5 elements
-					printBuff();									
+		if (rxbuff_e != rxbuff_b) {							//If buffer isn't empty
+			if (rxbuff_e < rxbuff_b) {						//If buffer has wrapped around (circular buffer)
+				if ((255 - rxbuff_b) + rxbuff_e > 5) {		//If buffer has more than 5 elements
+					buff_print();									
 				}
 			} else {
-				if (inBuffend - inBuffstart > 5) {				//If buffer has more than 5 elements
-					printBuff();
+				if (rxbuff_e - rxbuff_b > 5) {				//If buffer has more than 5 elements
+					buff_print();
 				}
 			}
 				
@@ -509,9 +514,9 @@ void kernel_main()
 
 void irq_handler(void)
 {
-    inptBuff[inBuffend]  = uart_readc();
-	inBuffend++;
-	if (inBuffend >= inBuffsize) {inBuffend = 0;}
+    rxbuff[rxbuff_e]  = uart_readc();
+	rxbuff_e++;
+	if (rxbuff_e >= rxbuffsize) {rxbuff_e = 0;}
 	//No checks if buffer overflows
 	
 //	uart_putc(' ');
@@ -519,10 +524,21 @@ void irq_handler(void)
 
 }
 
-void printBuff(void) {
-	while (inBuffstart != inBuffend) {
-		uart_putc(inptBuff[inBuffstart]);
-		inBuffstart++;
-		if (inBuffstart >= inBuffsize) {inBuffstart = 0;}
+void buff_print(void) {
+	while (rxbuff_b != rxbuff_e) {
+		uart_putc(rxbuff[rxbuff_b]);
+		rxbuff_b++;
+		if (rxbuff_b >= rxbuffsize) {rxbuff_b = 0;}
 	}
+}
+
+char buff_readc(void) {
+	while (rxbuff_b == rxbuff_e) {
+				
+	}
+	char c = rxbuff[rxbuff_b];
+	rxbuff_b++;
+	if (rxbuff_b >= rxbuffsize) {rxbuff_b = 0;}
+
+	return c;	
 }
