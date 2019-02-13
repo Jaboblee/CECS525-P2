@@ -25,5 +25,11 @@ uint8_t uart_readc(void);
  * const char *str: 0-terminated string
  */
 void uart_puts(const char *str);
- 
+
+/*
+ * returns 1 if full, 0 if empty, and 3 if neither
+ * accepts 'r' for rx buffer and 't' for tx buffer
+*/
+uint8_t uart_buffchk(char c);
+
 #endif // #ifndef UART_H

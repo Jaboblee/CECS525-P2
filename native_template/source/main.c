@@ -35,6 +35,8 @@ const char MS4[] = "\r\nInvalid Command Try Again...";
 const char GPUDATAERROR[] = "\r\nSystem Error: Invalid GPU Data";
 const char LOGONNAME[] = "eugene    ";
 const char PASSWORD[] = "cecs525   ";
+const char longstring[] = "This is a long string\0";
+
 //PWM Data for Alarm Tone
 uint32_t N[200] = {0,1,2,3,4,5,6,7,8,9,10,11,12,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,
 				36,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,60,61,62,63,64,65,66,67,68,69,
@@ -62,6 +64,7 @@ void testdelay();
 
 void buff_print();
 char buff_readc();
+void tx_string();
 
 extern int invar;               //assembly variables
 extern int outvar;
@@ -456,6 +459,9 @@ void command(void)
 		case 'V' | 'v':
 			VFP11();
 			break;
+		case 'B' | 'b':
+			tx_string();
+			break;
 		default:
 			uart_puts(MS4);
 			HELP();
@@ -476,18 +482,18 @@ int logon(void)
 
 void kernel_main() 
 {
-//	rxbuffsize = 256;
-//	rxbuff = (char *) malloc(sizeof(char)*rxbuffsize);
 	rxbuff_b = 0;
 	rxbuff_e = 0;
-	
+	txbuff_b = 0;
+	txbuff_e = 0;
+
 	uart_init();
 	enable_irq_57();
 	enable_arm_irq();
 //	if (logon() == 0) while (1) {}
 //	banner();
 //	HELP();
-//	while (1) {command();}
+	while (1) {command();}
 	
 	while (1) 
 	{
@@ -496,29 +502,39 @@ void kernel_main()
 		uart_putc(' ');
 		testdelay();
 		
+		/*
 		if (rxbuff_e != rxbuff_b) {							//If buffer isn't empty
 			if (rxbuff_e < rxbuff_b) {						//If buffer has wrapped around (circular buffer)
 				if ((255 - rxbuff_b) + rxbuff_e > 5) {		//If buffer has more than 5 elements
-					buff_print();									
+					buff_read();									
 				}
 			} else {
 				if (rxbuff_e - rxbuff_b > 5) {				//If buffer has more than 5 elements
-					buff_print();
+					buff_read();
 				}
-			}
-				
+			}		
 		}
+		*/
+
+
 	}
 }
 
 void irq_handler(void)
 {
-	if (txbuff_b != txbuff_e) {	//Do transmit stuff
-	
+	if ((txbuff_b != txbuff_e) & (uart_buffchk('t') == 0)) {
+		for (int i=0;i<8;i++) {
+			uart_putc(txbuff[txbuff_b]);
+			txbuff_b++;
+			if (txbuff_b >= txbuffsize) {txbuff_b = 0;}
+			if (txbuff_b == txbuff_e) {i=8;}		//add turn interrupt off!
+		}
 	}
-	rxbuff[rxbuff_e]  = uart_readc();
-	rxbuff_e++;
-	if (rxbuff_e >= rxbuffsize) {rxbuff_e = 0;}
+	while (uart_buffchk('r') != 0) {
+		rxbuff[rxbuff_e]  = uart_readc();
+		rxbuff_e++;
+		if (rxbuff_e >= rxbuffsize) {rxbuff_e = 0;}
+	}
 	//No checks if buffer overflows
 	
 //	uart_putc(' ');
@@ -526,7 +542,17 @@ void irq_handler(void)
 
 }
 
-void buff_print(void) {
+void tx_string(void) {
+	unsigned int i = 0;
+	while (longstring[i] != '\0') {
+		txbuff[txbuff_e] = longstring[i];
+		txbuff_e++;
+		i++;
+		if (txbuff_e >= txbuffsize) {txbuff_e = 0;}		
+	}
+}
+
+void buff_read(void) {
 	while (rxbuff_b != rxbuff_e) {
 		uart_putc(rxbuff[rxbuff_b]);
 		rxbuff_b++;

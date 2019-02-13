@@ -94,8 +94,8 @@ void uart_init()
     // Disable FIFO. Make 8 bit data transmission (1 stop bit, no parity).		//Enable FIFO
     mmio_write(UART0_LCRH, (1 << 4) | (1 << 5) | (1 << 6));
  
-    // Set FIFO interrupt levels, not sure if needed
-    mimo_write(UART0_IFLS, 0x0000);
+    // Set FIFO interrupt levels, not sure if needed					//Page 187
+    mmio_write(UART0_IFLS, (0<<0) | (0<<1) | (0<<2) | (0<<3) | (0<<4) | (0<<5));
  
     // Engineer the Interrupt for UART0 Receive						//Enable interrupt for UART0 TX
     mmio_write(UART0_IMSC, (1 << 4) | (1 << 5));
@@ -113,9 +113,9 @@ void uart_putc(uint8_t byte)
     // test for UART to become ready to transmit
     while (1) 
 	{
-      //  if (!(mmio_read(UART0_FR) & (1 << 5)))
+        if (!(mmio_read(UART0_FR) & (1 << 5)))
       //  {
-            if (!(mmio_read(UART0_FR) & (1 << 3)))
+      //      if (!(mmio_read(UART0_FR) & (1 << 3)))
             {
                 break;
             }
@@ -147,4 +147,25 @@ void uart_puts(const char *str)
 	{
         uart_putc(*str++);
     	}
+}
+
+uint8_t uart_buffchk(char c) {
+	if (c == 'r') {
+		if (mmio_read(UART0_FR) & (1<<4)) {
+			return 0;
+		} else if (mmio_read(UART0_FR) & (1<<6)) {
+			return 1;
+		} else {
+			return 3;
+		}
+	} else if (c == 't') {
+		if (mmio_read(UART0_FR) & (1<<7)) {
+			return 0;
+		} else if (mmio_read(UART0_FR) & (1<<5)) {
+			return 1;
+		} else {
+			return 3;
+		}
+	}
+	return 0;
 }
