@@ -66,6 +66,11 @@ void buff_read();
 char buff_readc();
 void tx_string();
 
+void printnum(char);
+void toString(int, char *);
+int log_10(int);
+int stringToint(char *);
+
 extern int invar;               //assembly variables
 extern int outvar;
 
@@ -580,4 +585,65 @@ char buff_readc(void) {
 	if (rxbuff_b >= rxbuffsize) {rxbuff_b = 0;}
 
 	return c;	
+}
+
+/*
+void testFunc() {
+	char numArray[15] = "";
+	int num1 = 9558437;
+	
+	toString(num1, numArray);
+	
+	int i;
+	for(i = 1; i <= log_10(num1); i++) {
+		printnum(numArray[i]);
+	}
+}
+*/
+
+void printnum(char c) {
+	int write(int, char *, int);
+	(void) write (1, &c, 1);
+}
+
+void toString(int num, char* numArray) {
+	int n = log_10(num);
+	int i;
+	
+    for ( i = n; i > 0; --i, num /= 10)
+	{
+		numArray[i] = num % 10 + 48;
+    }
+}
+
+int log_10(int num) {
+	int result = 0;
+	int i;
+	for (i = 1; num >= 1; i++) {
+		num /= 10;
+		result ++;
+	}
+	return result;
+}
+
+int stringToInt(char* string) {
+	int num = 0;
+	
+	int i;
+	for(i = 0; i < 15; i++) { //15 can be changed based on max string length
+		if (string[i] == 0) {
+			break;
+		}
+		
+		if (string[i] != 45) {
+			num *= 10;
+			num += (string[i] - 48);
+		}
+	}
+	
+	if (string[0] == 45) {
+		num = 0 - num;
+	}
+	
+	return num;
 }
