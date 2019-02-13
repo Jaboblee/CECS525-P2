@@ -98,7 +98,7 @@ void uart_init()
     mmio_write(UART0_IFLS, (0<<0) | (0<<1) | (0<<2) | (0<<3) | (0<<4) | (0<<5));
  
     // Engineer the Interrupt for UART0 Receive						//Enable interrupt for UART0 TX
-    mmio_write(UART0_IMSC, (1 << 4) | (1 << 5));
+    mmio_write(UART0_IMSC, (1 << 4));
  
     // Enable UART0, receive & transfer part of UART.
     mmio_write(UART0_CR, (1 << 0) | (1 << 8) | (1 << 9));
@@ -111,17 +111,19 @@ void uart_init()
 void uart_putc(uint8_t byte) 
 {
     // test for UART to become ready to transmit
+    uart_tx_off();
     while (1) 
 	{
-      //  if (!(mmio_read(UART0_FR) & (1 << 5)))
+        if (!(mmio_read(UART0_FR) & (1 << 5)))
       //  {
-            if (!(mmio_read(UART0_FR) & (1 << 3)))
+      //      if (!(mmio_read(UART0_FR) & (1 << 3)))
             {
                 break;
             }
 	//	}
     }
     mmio_write(UART0_DR, byte);
+    uart_tx_on();
 }
 
 uint8_t uart_readc(void)
@@ -147,6 +149,19 @@ void uart_puts(const char *str)
 	{
         uart_putc(*str++);
     }
+}
+
+uint8_t uart_itrpt_status(void) {
+
+	return 0;
+}
+
+void uart_tx_on(void) {
+	mmio_write(UART0_IMSC, (1<<4) | (1<<5));	
+}
+
+void uart_tx_off(void) {
+	mmio_write(UART0_IMSC, (1<<4));
 }
 
 uint8_t uart_buffchk(char c) {

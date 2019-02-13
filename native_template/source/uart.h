@@ -27,6 +27,21 @@ uint8_t uart_readc(void);
 void uart_puts(const char *str);
 
 /*
+ * Turn on transmit interrupt
+ */
+void uart_tx_on(void);
+
+/*
+ * Turn off transmit interrupt
+ */
+void uart_tx_off(void);
+
+/*
+ * Output 0 if rx interrupt, 1 if tx interrupt, and 2 if both
+ */
+uint8_t uart_itrpt_status(void);
+
+/*
  * returns 1 if full, 0 if empty, and 3 if neither
  * accepts 'r' for rx buffer and 't' for tx buffer
 */

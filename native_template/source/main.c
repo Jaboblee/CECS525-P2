@@ -460,6 +460,7 @@ void command(void)
 			VFP11();
 			break;
 		case 'B' | 'b':
+			uart_tx_on();
 			tx_string();
 			break;
 		default:
@@ -529,9 +530,10 @@ void irq_handler(void)
 			uart_putc(txbuff[txbuff_b]);
 			txbuff_b++;
 			if (txbuff_b >= txbuffsize) {txbuff_b = 0;}
-			if (txbuff_b == txbuff_e) {i=8;}		//add turn interrupt off!
+			if (txbuff_b == txbuff_e) {i=8;uart_tx_off();}		//Turn off tx interrupt, exit loop
 		}
 	}
+	
 	while (uart_buffchk('r') != 0) {
 		rxbuff[rxbuff_e]  = uart_readc();
 		uart_putc(rxbuff[rxbuff_e]);
