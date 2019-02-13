@@ -528,6 +528,8 @@ void kernel_main()
 		
 		uart_putString(inpt,16);
 		
+		//test comment
+		
 		/*
 		if (rxbuff_e != rxbuff_b) {							//If buffer isn't empty
 			if (rxbuff_e < rxbuff_b) {						//If buffer has wrapped around (circular buffer)
