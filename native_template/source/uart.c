@@ -113,9 +113,9 @@ void uart_putc(uint8_t byte)
     // test for UART to become ready to transmit
     while (1) 
 	{
-        if (!(mmio_read(UART0_FR) & (1 << 5)))
+      //  if (!(mmio_read(UART0_FR) & (1 << 5)))
       //  {
-      //      if (!(mmio_read(UART0_FR) & (1 << 3)))
+            if (!(mmio_read(UART0_FR) & (1 << 3)))
             {
                 break;
             }
@@ -133,7 +133,7 @@ uint8_t uart_readc(void)
 		{
 			break;
 		}
-    	}
+    }
 	return mmio_read(UART0_DR);
 }
  
@@ -146,7 +146,7 @@ void uart_puts(const char *str)
     while (*str) 
 	{
         uart_putc(*str++);
-    	}
+    }
 }
 
 uint8_t uart_buffchk(char c) {

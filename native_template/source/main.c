@@ -62,7 +62,7 @@ void enable_irq_57();
 void disable_irq_57();
 void testdelay();
 
-void buff_print();
+void buff_read();
 char buff_readc();
 void tx_string();
 
@@ -491,9 +491,9 @@ void kernel_main()
 	enable_irq_57();
 	enable_arm_irq();
 //	if (logon() == 0) while (1) {}
-//	banner();
+	banner();
 //	HELP();
-	while (1) {command();}
+//	while (1) {command();}
 	
 	while (1) 
 	{
@@ -501,6 +501,8 @@ void kernel_main()
 		uart_putc('A');
 		uart_putc(' ');
 		testdelay();
+		
+		buff_read();
 		
 		/*
 		if (rxbuff_e != rxbuff_b) {							//If buffer isn't empty
@@ -532,6 +534,7 @@ void irq_handler(void)
 	}
 	while (uart_buffchk('r') != 0) {
 		rxbuff[rxbuff_e]  = uart_readc();
+		uart_putc(rxbuff[rxbuff_e]);
 		rxbuff_e++;
 		if (rxbuff_e >= rxbuffsize) {rxbuff_e = 0;}
 	}
