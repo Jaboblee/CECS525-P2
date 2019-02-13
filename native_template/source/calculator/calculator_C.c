@@ -1,13 +1,11 @@
-#include <stdio.h>
-
-extern int addition(int add1, int add2);
-extern int subtraction(int sub1, int sub2);
-extern int multiplication(int mul1, int mul2);
-extern int division(int div1, int div2);
-extern int remainder(int rem1, int rem2);
-
-int main()
+int calc()
 {
+	extern int addition(int add1, int add2);
+	extern int subtraction(int sub1, int sub2);
+	extern int multiplication(int mul1, int mul2);
+	extern int division(int div1, int div2);
+	extern int remainder(int rem1, int rem2);
+	
 	char operator;
 	int operand1;
 	int operand2;

@@ -176,10 +176,9 @@ uint8_t uart_itrpt_status(void) {
 	{
 		return 3;							//Both Tx and Rx are set
 	}
-	else
-	{
-		return 4;							//Something went wrong.
-	}
+
+	return 4;							//Something went wrong.
+
 }
 
 void uart_tx_on(void) {

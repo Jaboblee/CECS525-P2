@@ -37,6 +37,13 @@ const char LOGONNAME[] = "eugene    ";
 const char PASSWORD[] = "cecs525   ";
 const char longstring[] = "This is a long string blaasuiguibjnkfgiue fiuwnkwdfuhjnu8iwref jifhgu8v hwefh9 8rjgioujfiogj ei ioe rgiorh gven fgklwrh fgi wnfiohfgkwnklfhj walefj iog awljenfwlfgja lwef'oiwue fjkasndfklwu fkjlaw n;fhkoaw eilf\r\n\0";
 
+
+extern int addition(int add1, int add2);
+extern int subtraction(int sub1, int sub2);
+extern int multiplication(int mul1, int mul2);
+extern int division(int div1, int div2);
+extern int remaind(int rem1, int rem2);
+
 //PWM Data for Alarm Tone
 uint32_t N[200] = {0,1,2,3,4,5,6,7,8,9,10,11,12,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,
 				36,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,60,61,62,63,64,65,66,67,68,69,
@@ -72,6 +79,7 @@ void printnum(char);
 void toString(int, char *);
 int log_10(int);
 int stringToint(char *);
+int calc();
 
 extern int invar;               //assembly variables
 extern int outvar;
@@ -470,6 +478,9 @@ void command(void)
 			tx_string();
 			uart_tx_on();
 			break;
+		case 'G' | 'g':
+			calc();
+			break;
 		default:
 			uart_puts(MS4);
 			HELP();
@@ -631,10 +642,10 @@ void testFunc() {
 }
 */
 
-void printnum(char c) {
-	int write(int, char *, int);
-	(void) write (1, &c, 1);
-}
+//void printnum(char c) {
+//	int write(int, char *, int);
+//	(void) write (1, &c, 1);
+//}
 
 void toString(int num, char* numArray) {
 	int n = log_10(num);
@@ -660,7 +671,7 @@ int stringToInt(char* string) {
 	int num = 0;
 	
 	int i;
-	for(i = 0; i < 15; i++) { //15 can be changed based on max string length
+	for(i = 0; i < 30; i++) { //15 can be changed based on max string length
 		if (string[i] == 0) {
 			break;
 		}
@@ -676,4 +687,87 @@ int stringToInt(char* string) {
 	}
 	
 	return num;
+}
+
+int calc()
+{
+	
+	char operator[1];
+	char calcmsg1[] = "Select an Operator (+,-,*,/): \0";
+	char calcmsg2[] = "\nEnter first Operand: \0";
+	char calcmsg3[] = "\nEnter second Operand: \0";
+	char calcmsg4[] = "\nYour answer is: \0";
+	char calcmsg5[] = " with a remainder of \0";
+	char calcmsg6[] = "\nOperator error. Please try again.\0";
+	int operand1;
+	char opstring1[30];
+	int operand2;
+	char opstring2[30];
+	int output;
+	char outputstring[30];
+	int rem;
+	
+	//printf("Select an Operator (+,-,*,/): ");
+	uart_putString(calcmsg1, 31);
+	//scanf("%c", operator[1]);
+	buff_readline(operator, 1);
+	//printf("\nEnter first Operand: ");
+	uart_putString(calcmsg2, 23);
+	
+	//scanf("%d", operand1);
+	buff_readline(opstring1, 30);
+	operand1 = stringToInt(opstring1);
+	//printf("\nEnter second Operand: ");
+
+	uart_putString(calcmsg3, 24);
+	//scanf("%d", operand2);
+	buff_readline(opstring2, 30);
+	operand2 = stringToInt(opstring2);
+	
+	switch(operator[1])
+	{
+		case '+':
+			output = addition(operand1, operand2);
+			toString(output, outputstring);
+			uart_putString(calcmsg4, 18);
+			uart_putString(outputstring, 30);
+			
+			
+		break;
+		case '-':
+			output = subtraction(operand1, operand2);
+			//printf("Your answer is %d", output);
+			toString(output, outputstring);
+			uart_putString(calcmsg4, 18);
+			uart_putString(outputstring, 30);
+		break;
+		case '*':
+			output = multiplication(operand1, operand2);
+			//printf("Your answer is %d", output);
+			toString(output, outputstring);
+			uart_putString(calcmsg4, 18);
+			uart_putString(outputstring, 30);
+						
+		break;
+		case '/':
+			
+			output = division(operand1, operand2);
+			//rem = remaind(operand1, operand2);
+			//printf("Your answer is %d with remainder of %d", output, rem);
+			toString(output, outputstring);
+			uart_putString(calcmsg4, 18);
+			uart_putString(outputstring, 30);
+			toString(rem, outputstring);
+			uart_putString(calcmsg5, 22);
+			uart_putString(outputstring, 30);
+			
+		break;
+		
+		default:
+			//printf("\nOperator error. Please try again.");
+			uart_putString(calcmsg6, 35);
+		break;
+	}
+	
+	return 0;
 }
