@@ -35,7 +35,7 @@ const char MS4[] = "\r\nInvalid Command Try Again...";
 const char GPUDATAERROR[] = "\r\nSystem Error: Invalid GPU Data";
 const char LOGONNAME[] = "eugene    ";
 const char PASSWORD[] = "cecs525   ";
-const char longstring[] = "This is a long string\0";
+const char longstring[] = "This is a long stringaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\0";
 
 //PWM Data for Alarm Tone
 uint32_t N[200] = {0,1,2,3,4,5,6,7,8,9,10,11,12,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,
@@ -92,7 +92,7 @@ volatile uint32_t* bcm2835_st = (uint32_t*)BCM2835_ST_BASE;
 void testdelay(void)
 {
 	int count = 0xFFFFF;
-	while (count > 0) {count = count - 1;}
+	while (count > 0) {count--;}
 }
 
 void enable_irq_57(void) 
@@ -460,8 +460,8 @@ void command(void)
 			VFP11();
 			break;
 		case 'B' | 'b':
-			uart_tx_on();
 			tx_string();
+			uart_tx_on();
 			break;
 		default:
 			uart_puts(MS4);
@@ -494,12 +494,12 @@ void kernel_main()
 //	if (logon() == 0) while (1) {}
 	banner();
 //	HELP();
-//	while (1) {command();}
+	while (1) {command();}
 	
 	while (1) 
 	{
 		uart_putc(' ');
-		uart_putc('A');
+		uart_putc('B');
 		uart_putc(' ');
 		testdelay();
 		
@@ -525,26 +525,31 @@ void kernel_main()
 
 void irq_handler(void)
 {
-	if ((txbuff_b != txbuff_e) & (uart_buffchk('t') == 0)) {
-		for (int i=0;i<8;i++) {
-			uart_putc(txbuff[txbuff_b]);
-			txbuff_b++;
-			if (txbuff_b >= txbuffsize) {txbuff_b = 0;}
-			if (txbuff_b == txbuff_e) {i=8;uart_tx_off();}		//Turn off tx interrupt, exit loop
+//	uint8_t itrpt = uart_itrpt_status();
+//	if (itrpt == 1 || itrpt == 3) {
+	if (txbuff_b != txbuff_e) { 
+		if (uart_buffchk('t') == 0) {
+			for (int i=0;i<8;i++) {
+				uart_putc(txbuff[txbuff_b]);
+				txbuff_b++;
+				if (txbuff_b >= txbuffsize) {txbuff_b = 0;}
+				if (txbuff_b == txbuff_e) {i=8;uart_tx_off();}		//Turn off tx interrupt, exit loop
+			}
 		}
+	} else {
+		uart_tx_off();
 	}
-	
+//	} else if (itrpt == 2 || itrpt == 3) {
 	while (uart_buffchk('r') != 0) {
 		rxbuff[rxbuff_e]  = uart_readc();
-		uart_putc(rxbuff[rxbuff_e]);
+		//uart_putc(rxbuff[rxbuff_e]);							//Echo test
 		rxbuff_e++;
 		if (rxbuff_e >= rxbuffsize) {rxbuff_e = 0;}
 	}
+//	}
 	//No checks if buffer overflows
 	
-//	uart_putc(' ');
-//	uart_putc(c);
-
+//	uart_putc('I');
 }
 
 void tx_string(void) {
@@ -563,6 +568,7 @@ void buff_read(void) {
 		rxbuff_b++;
 		if (rxbuff_b >= rxbuffsize) {rxbuff_b = 0;}
 	}
+	return;
 }
 
 char buff_readc(void) {
