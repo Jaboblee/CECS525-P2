@@ -152,8 +152,27 @@ void uart_puts(const char *str)
 }
 
 uint8_t uart_itrpt_status(void) {
-
-	return 0;
+	
+	if (mmio_read(UART0_MIS) & ((1<<5) | (1<<4)) == 0)
+	{
+		return 0; 							//NO status bits set
+	}
+	else if (mmio_read(UART0_MIS) & ((1<<5) | (1<<4)) == (1<<4))
+	{
+		return 1;							//Rx is set, Tx is not
+	}
+	else if (mmio_read(UART0_MIS) & ((1<<5) | (1<<4)) == (1<<5))
+	{
+		return 2;							//Tx is set, Rx is not
+	}
+	else if (mmio_read(UART0_MIS) & ((1<<5) | (1<<4)) == ((1<<5) | (1<<4)))
+	{
+		return 3;							//Both Tx and Rx are set
+	}
+	else
+	{
+		return 4;							//Something went wrong.
+	}
 }
 
 void uart_tx_on(void) {
