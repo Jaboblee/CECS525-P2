@@ -710,18 +710,18 @@ int calc()
 	int rem;
 	
 	//printf("Select an Operator (+,-,*,/): ");
-	uart_putString(calcmsg1, 31);
+	uart_puts(calcmsg1);
 	//scanf("%c", operator[1]);
 	buff_readline(operator, 1);
 	//printf("\nEnter first Operand: ");
-	uart_putString(calcmsg2, 23);
+	uart_puts(calcmsg2);
 	
 	//scanf("%d", operand1);
 	buff_readline(opstring1, 30);
 	operand1 = stringToInt(opstring1);
 	//printf("\nEnter second Operand: ");
 
-	uart_putString(calcmsg3, 24);
+	uart_puts(calcmsg3);
 	//scanf("%d", operand2);
 	buff_readline(opstring2, 30);
 	operand2 = stringToInt(opstring2);
@@ -731,7 +731,7 @@ int calc()
 		case '+':
 			output = addition(operand1, operand2);
 			toString(output, outputstring);
-			uart_putString(calcmsg4, 18);
+			uart_puts(calcmsg4);
 			uart_putString(outputstring, 30);
 			
 			
@@ -740,14 +740,14 @@ int calc()
 			output = subtraction(operand1, operand2);
 			//printf("Your answer is %d", output);
 			toString(output, outputstring);
-			uart_putString(calcmsg4, 18);
+			uart_puts(calcmsg4);
 			uart_putString(outputstring, 30);
 		break;
 		case '*':
 			output = multiplication(operand1, operand2);
 			//printf("Your answer is %d", output);
 			toString(output, outputstring);
-			uart_putString(calcmsg4, 18);
+			uart_puts(calcmsg4);
 			uart_putString(outputstring, 30);
 						
 		break;
@@ -757,17 +757,17 @@ int calc()
 			//rem = remaind(operand1, operand2);
 			//printf("Your answer is %d with remainder of %d", output, rem);
 			toString(output, outputstring);
-			uart_putString(calcmsg4, 18);
+			uart_puts(calcmsg4);
 			uart_putString(outputstring, 30);
 			toString(rem, outputstring);
-			uart_putString(calcmsg5, 22);
+			uart_puts(calcmsg5);
 			uart_putString(outputstring, 30);
 			
 		break;
 		
 		default:
 			//printf("\nOperator error. Please try again.");
-			uart_putString(calcmsg6, 35);
+			uart_puts(calcmsg6);
 		break;
 	}
 	
