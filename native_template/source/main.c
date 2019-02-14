@@ -35,8 +35,8 @@ const char MS4[] = "\r\nInvalid Command Try Again...";
 const char GPUDATAERROR[] = "\r\nSystem Error: Invalid GPU Data";
 const char LOGONNAME[] = "eugene    ";
 const char PASSWORD[] = "cecs525   ";
-const char longstring[] = "This is a long string blaasuiguibjnkfgiue fiuwnkwdfuhjnu8iwref jifhgu8v hwefh9 8rjgioujfiogj ei ioe rgiorh gven fgklwrh fgi wnfiohfgkwnklfhj walefj iog awljenfwlfgja lwef'oiwue fjkasndfklwu fkjlaw n;fhkoaw eilf\r\n\0";
-
+//const char longstring[] = "This is a long string blaasuiguibjnkfgiue fiuwnkwdfuhjnu8iwref jifhgu8v hwefh9 8rjgioujfiogj ei ioe rgiorh gven fgklwrh fgi wnfiohfgkwnklfhj walefj iog awljenfwlfgja lwef'oiwue fjkasndfklwu fkjlaw n;fhkoaw eilf\r\n\0";
+const char longstring[] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n\0";
 
 extern int addition(int add1, int add2);
 extern int subtraction(int sub1, int sub2);
@@ -411,7 +411,7 @@ void RES(void)
 
 void HELP(void) //Command List
 {
-	uart_puts("\r\n(A)DC,(C)ancom,(D)ate,(H)elp,a(L)arm,(R)eset,(S)FT,(T)ime,(V)FP11");
+	uart_puts("\r\n(A)DC,(C)ancom,(D)ate,(H)elp,a(L)arm,(R)eset,(S)FT,(T)ime,(V)FP11,(B)Print Long String,(G)Calculator");
 }
 
 void SFT(void) //Soft Floating Point Demo, optionally complete this command and related code for experience with floating point operations performed in software.
@@ -447,39 +447,40 @@ void command(void)
 		c = buff_readc();
 	}
 	switch (c) {
-		case 'C' | 'c':
+		case 'C': case 'c':
 			CANCOM();
 			break;
-		case 'D' | 'd':
+		case 'D': case 'd':
 			DATE();
 			break;
-		case 'T' | 't':
+		case 'T': case 't':
 			TIME();
 			break;
-		case 'L' | 'l':
+		case 'L': case 'l':
 			ALARM();
 			break;
-		case 'A' | 'a':
+		case 'A': case 'a':
 			ADC();
 			break;
-		case 'R' | 'r':
+		case 'R': case 'r':
 			RES();
 			break;
-		case 'S' | 's':
+		case 'S': case 's':
 			SFT();
 			break;
-		case 'H' | 'h':
+		case 'H': case 'h':
 			HELP();
 			break;
-		case 'V' | 'v':
+		case 'V': case 'v':
 			VFP11();
 			break;
-		case 'B' | 'b':
+		case 'B': case 'b':
 			tx_string();
-			uart_tx_on();
 			break;
-		case 'G' | 'g':
+		case 'G': case 'g':
 			calc();
+			break;
+		case '7':
 			break;
 		default:
 			uart_puts(MS4);
@@ -584,6 +585,15 @@ void tx_string(void) {
 		i++;
 		if (txbuff_e >= txbuffsize) {txbuff_e = 0;}		
 	}
+	uart_tx_on();
+/*	
+	while (rxbuff_b == rxbuff_e) {				//neverending a's mode
+		txbuff[txbuff_e] = 'a';
+		txbuff_e++;
+		if (txbuff_e >= txbuffsize) {txbuff_e = 0;}	
+		uart_tx_on();
+	}
+*/
 }
 
 void buff_print(void) {
@@ -654,22 +664,22 @@ void toString(int num, char* numArray) {
 		neg = 1;
 	}
 	
-	int n = log_10(num);
+	int n = log_10(num) - 1;
 	if (neg == 1) {n++;}
 	
-	for (int i = n; i > 0; --i, num /= 10) {
+	for (int i = n; i >= 0; --i, num /= 10) {
 		numArray[i] = num % 10 + 48;
 	}
-
+	
+	numArray[n+1]='\0';
 	if (neg == 1) {numArray[0] = '-';}
 }
 
 int log_10(int num) {
-	int result = 0;
-
-	for (int i = 1; num >= 1; i++) {
-		num /= 10;
-		result ++;
+	int result;
+	
+	for (result = 0; num >= 1; result++) {
+		num = num / 10;
 	}
 	return result;
 }
@@ -698,12 +708,12 @@ int stringToInt(char* string) {
 int calc() {
 	
 	char operator[1];
-	char calcmsg1[] = "Select an Operator (+,-,*,/,(e)xit): \0";
-	char calcmsg2[] = "\nEnter first Operand: \0";
-	char calcmsg3[] = "\nEnter second Operand: \0";
-	char calcmsg4[] = "\nYour answer is: \0";
-	char calcmsg5[] = " with a remainder of \0";
-	char calcmsg6[] = "\nOperator error. Please try again.\0";
+	const char calcmsg1[] = "\n\rSelect an Operator (+,-,*,/,(e)xit): \0";
+	const char calcmsg2[] = "\n\rEnter first Operand: \0";
+	const char calcmsg3[] = "\n\rEnter second Operand: \0";
+	const char calcmsg4[] = "\n\rYour answer is: \0";
+	const char calcmsg5[] = " with a remainder of \0";
+	const char calcmsg6[] = "\n\rOperator error. Please try again.\0";
 	int operand1;
 	char opstring1[30];
 	int operand2;
@@ -753,7 +763,7 @@ int calc() {
 				break;
 			case '/':
 				output = division(operand1, operand2);
-				//rem = remaind(operand1, operand2);
+				rem = remaind(operand1, operand2);
 				break;	
 			default:
 				//printf("\nOperator error. Please try again.");
@@ -761,6 +771,7 @@ int calc() {
 				break;
 		}
 	
+
 		toString(output, outputstring);
 		//printf("Your answer is %d", output);
 		uart_puts(calcmsg4);
