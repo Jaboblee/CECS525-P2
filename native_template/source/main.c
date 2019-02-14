@@ -69,17 +69,17 @@ void enable_irq_57();
 void disable_irq_57();
 void testdelay();
 
-void buff_print();
-char buff_readc();
-void buff_readline();
-void tx_string();
+void buff_print(void);
+char buff_readc(void);
+void buff_readline(char *s, int n);
+void tx_string(void);
 void uart_putString(char *s, int n);
 
 void printnum(char);
 void toString(int, char *);
 int log_10(int);
 int stringToint(char *);
-int calc();
+int calc(void);
 
 extern int invar;               //assembly variables
 extern int outvar;
@@ -513,7 +513,7 @@ void kernel_main()
 //	if (logon() == 0) while (1) {}
 	banner();
 //	HELP();
-//	while (1) {command();}
+	while (1) {command();}
 	
 	while (1) 
 	{
@@ -527,9 +527,7 @@ void kernel_main()
 		uart_puts("\n\t");
 		
 		uart_putString(inpt,16);
-		
-		//test comment
-		
+				
 		/*
 		if (rxbuff_e != rxbuff_b) {							//If buffer isn't empty
 			if (rxbuff_e < rxbuff_b) {						//If buffer has wrapped around (circular buffer)
@@ -614,8 +612,8 @@ void buff_readline(char *s, int n) {
 
 void uart_putString(char *s, int n) {
 	for (int i=0;i<n;i++) {
-			if (s[i]=='\0') {break;}
-			uart_putc(s[i]);
+		if (s[i]=='\0') {break;}
+		uart_putc(s[i]);
 	}
 }
 
@@ -650,19 +648,26 @@ void testFunc() {
 //}
 
 void toString(int num, char* numArray) {
-	int n = log_10(num);
-	int i;
+	int neg = 0;
+	if (num < 0) {
+		num = num * (-1);
+		neg = 1;
+	}
 	
-    for ( i = n; i > 0; --i, num /= 10)
-	{
+	int n = log_10(num);
+	if (neg == 1) {n++;}
+	
+	for (int i = n; i > 0; --i, num /= 10) {
 		numArray[i] = num % 10 + 48;
-    }
+	}
+
+	if (neg == 1) {numArray[0] = '-';}
 }
 
 int log_10(int num) {
 	int result = 0;
-	int i;
-	for (i = 1; num >= 1; i++) {
+
+	for (int i = 1; num >= 1; i++) {
 		num /= 10;
 		result ++;
 	}
@@ -672,9 +677,8 @@ int log_10(int num) {
 int stringToInt(char* string) {
 	int num = 0;
 	
-	int i;
-	for(i = 0; i < 30; i++) { //15 can be changed based on max string length
-		if (string[i] == 0) {
+	for(int i = 0; i < 30; i++) { //15 can be changed based on max string length
+		if (!((string[i] >= 48 && string[i] <= 57) || string[i] == 45)) {	//Break if not '-' or number
 			break;
 		}
 		
@@ -691,11 +695,10 @@ int stringToInt(char* string) {
 	return num;
 }
 
-int calc()
-{
+int calc() {
 	
 	char operator[1];
-	char calcmsg1[] = "Select an Operator (+,-,*,/): \0";
+	char calcmsg1[] = "Select an Operator (+,-,*,/,(e)xit): \0";
 	char calcmsg2[] = "\nEnter first Operand: \0";
 	char calcmsg3[] = "\nEnter second Operand: \0";
 	char calcmsg4[] = "\nYour answer is: \0";
@@ -705,71 +708,72 @@ int calc()
 	char opstring1[30];
 	int operand2;
 	char opstring2[30];
-	int output;
+	int output = 0;
 	char outputstring[30];
-	int rem;
+	int rem = 0;
 	
-	//printf("Select an Operator (+,-,*,/): ");
-	uart_puts(calcmsg1);
-	//scanf("%c", operator[1]);
-	buff_readline(operator, 1);
-	//printf("\nEnter first Operand: ");
-	uart_puts(calcmsg2);
+	while (1) {		
+		//printf("Select an Operator (+,-,*,/,(e)xit): ");
+		uart_puts(calcmsg1);
 	
-	//scanf("%d", operand1);
-	buff_readline(opstring1, 30);
-	operand1 = stringToInt(opstring1);
-	//printf("\nEnter second Operand: ");
+		//scanf("%c", operator[1]);
+		operator[0] = buff_readc();
+		//buff_readline(operator, 1);
+	
+		if (operator[0] != 'e') {
+			//printf("\nEnter first Operand: ");
+			uart_puts(calcmsg2);
+	
+			//scanf("%d", operand1);
+			buff_readline(opstring1, 30);
+			operand1 = stringToInt(opstring1);
+	
+			//printf("\nEnter second Operand: ");
+			uart_puts(calcmsg3);
+	
+			//scanf("%d", operand2);
+			buff_readline(opstring2, 30);
+			operand2 = stringToInt(opstring2);
+		} else {
+			return 0;
+		}	
+		
+		output = 0;
+		rem = 0;
 
-	uart_puts(calcmsg3);
-	//scanf("%d", operand2);
-	buff_readline(opstring2, 30);
-	operand2 = stringToInt(opstring2);
+		switch(operator[0]) {
+			case '+':
+				output = addition(operand1, operand2);
+				break;
+			case '-':
+				output = subtraction(operand1, operand2);
+				break;
+			case '*':
+				output = multiplication(operand1, operand2);				
+				break;
+			case '/':
+				output = division(operand1, operand2);
+				//rem = remaind(operand1, operand2);
+				break;	
+			default:
+				//printf("\nOperator error. Please try again.");
+				uart_puts(calcmsg6);
+				break;
+		}
 	
-	switch(operator[1])
-	{
-		case '+':
-			output = addition(operand1, operand2);
-			toString(output, outputstring);
-			uart_puts(calcmsg4);
-			uart_putString(outputstring, 30);
-			
-			
-		break;
-		case '-':
-			output = subtraction(operand1, operand2);
-			//printf("Your answer is %d", output);
-			toString(output, outputstring);
-			uart_puts(calcmsg4);
-			uart_putString(outputstring, 30);
-		break;
-		case '*':
-			output = multiplication(operand1, operand2);
-			//printf("Your answer is %d", output);
-			toString(output, outputstring);
-			uart_puts(calcmsg4);
-			uart_putString(outputstring, 30);
-						
-		break;
-		case '/':
-			
-			output = division(operand1, operand2);
-			//rem = remaind(operand1, operand2);
-			//printf("Your answer is %d with remainder of %d", output, rem);
-			toString(output, outputstring);
-			uart_puts(calcmsg4);
-			uart_putString(outputstring, 30);
+		toString(output, outputstring);
+		//printf("Your answer is %d", output);
+		uart_puts(calcmsg4);
+		uart_putString(outputstring, 30);
+
+		if (rem != 0) {	
 			toString(rem, outputstring);
+			//printf(" with remainder of %d", rem);
 			uart_puts(calcmsg5);
 			uart_putString(outputstring, 30);
-			
-		break;
-		
-		default:
-			//printf("\nOperator error. Please try again.");
-			uart_puts(calcmsg6);
-		break;
+		}
 	}
+
 	
 	return 0;
 }
