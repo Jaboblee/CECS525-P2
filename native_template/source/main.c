@@ -71,13 +71,13 @@ void testdelay();
 
 /*************************** Modified Section **********************************/
 void buff_print(void);							//Transmits entire rx buffer one character at a time
-char buff_readc(void);						//Returns and removes oldest character from rx buffer
-void buff_readline(char *s, int n);			//Reads n characters from rx buffer into *s or until '\n' 
+char buff_readc(void);							//Returns and removes oldest character from rx buffer
+void buff_readline(char *s, int n);					//Reads n characters from rx buffer into *s or until '\n' 
 void tx_string(void);							//Tranmits long string from memory							
-void toString(int num, char* numArray);		//Converts signed int num into ascii characters in *numArray
+void toString(int num, char* numArray);					//Converts signed int num into ascii characters in *numArray
 int log_10(int num);							//Returns the number of digits in an integer
-int stringToint(char *string);				//Returns signed int as converted from ascii string
-int calc(void);									//Enters calculator submenu
+int stringToint(char *string);						//Returns signed int as converted from ascii string
+int calc(void);								//Enters calculator submenu
 
 //Serial buffers
 #define rxbuffsize 256
@@ -97,9 +97,9 @@ extern int outvar;
 //Pointers to some of the BCM2835 peripheral register bases
 volatile uint32_t* bcm2835_gpio = (uint32_t*)BCM2835_GPIO_BASE;
 volatile uint32_t* bcm2835_clk = (uint32_t*)BCM2835_CLOCK_BASE;
-volatile uint32_t* bcm2835_pads = (uint32_t*)BCM2835_GPIO_PADS;//for later updates to program
+volatile uint32_t* bcm2835_pads = (uint32_t*)BCM2835_GPIO_PADS;		//for later updates to program
 volatile uint32_t* bcm2835_spi0 = (uint32_t*)BCM2835_SPI0_BASE;
-volatile uint32_t* bcm2835_bsc0 = (uint32_t*)BCM2835_BSC0_BASE;//for later updates to program
+volatile uint32_t* bcm2835_bsc0 = (uint32_t*)BCM2835_BSC0_BASE;		//for later updates to program
 volatile uint32_t* bcm2835_bsc1 = (uint32_t*)BCM2835_BSC1_BASE;
 volatile uint32_t* bcm2835_st = (uint32_t*)BCM2835_ST_BASE;
 
@@ -111,7 +111,7 @@ void testdelay(void)
 
 void enable_irq_57(void) 
 {
-	mmio_write(0x2000B214, 0x02000000);		//BCM2835-Page 175
+	mmio_write(0x2000B214, 0x02000000);				//BCM2835-Page 175
 }
 void disable_irq_57(void)
 {
@@ -162,7 +162,7 @@ void DATE(void)
             
             
 			
-            //Engineer the code here to Set the current Date in the DS3231M
+           								 //Engineer the code here to Set the current Date in the DS3231M
             
             
             
@@ -607,20 +607,20 @@ void buff_print(void) {
 void buff_readline(char *s, int n) {
 	int i = 0;
 	char c = buff_readc();						
-	while (c != '\r' && c != '\n' && i < n) {	//Read from buffer until newline or out of space
+	while (c != '\r' && c != '\n' && i < n) {					//Read from buffer until newline or out of space
 		s[i] = c;
 		uart_putc(s[i]);							//Echo recieved character
 		i++;
 		c=buff_readc();
 	}
-	while (i < n) {								//Fill remaining string with termination character
+	while (i < n) {									//Fill remaining string with termination character
 		s[i] = '\0';
 		i++;
 	}
 }
 
 char buff_readc(void) {
-	while (rxbuff_b == rxbuff_e) {				//Wait until buffer is nonempty
+	while (rxbuff_b == rxbuff_e) {							//Wait until buffer is nonempty
 				
 	}
 	char c = rxbuff[rxbuff_b];
