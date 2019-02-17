@@ -27,6 +27,12 @@ uint8_t uart_readc(void);
 void uart_puts(const char *str);
 
 /*
+ * print a string to the UART one character at a time
+ * char *str: 0-terminated string, of potential length n
+ */
+void uart_putString(char *s, int n);
+
+/*
  * Turn on transmit interrupt
  */
 void uart_tx_on(void);

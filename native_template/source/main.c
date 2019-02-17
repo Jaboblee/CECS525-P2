@@ -69,20 +69,15 @@ void enable_irq_57();
 void disable_irq_57();
 void testdelay();
 
-void buff_print(void);
-char buff_readc(void);
-void buff_readline(char *s, int n);
-void tx_string(void);
-void uart_putString(char *s, int n);
-
-void printnum(char);
-void toString(int, char *);
-int log_10(int);
-int stringToint(char *);
-int calc(void);
-
-extern int invar;               //assembly variables
-extern int outvar;
+/*************************** Modified Section **********************************/
+void buff_print(void);							//Transmits entire rx buffer one character at a time
+char buff_readc(void);						//Returns and removes oldest character from rx buffer
+void buff_readline(char *s, int n);			//Reads n characters from rx buffer into *s or until '\n' 
+void tx_string(void);							//Tranmits long string from memory							
+void toString(int num, char* numArray);		//Converts signed int num into ascii characters in *numArray
+int log_10(int num);							//Returns the number of digits in an integer
+int stringToint(char *string);				//Returns signed int as converted from ascii string
+int calc(void);									//Enters calculator submenu
 
 //Serial buffers
 #define rxbuffsize 256
@@ -94,6 +89,10 @@ volatile unsigned int rxbuff_e;
 char txbuff[txbuffsize];
 volatile unsigned int txbuff_b;
 volatile unsigned int txbuff_e;
+/***************************************************************************/
+
+extern int invar;               //assembly variables
+extern int outvar;
 
 //Pointers to some of the BCM2835 peripheral register bases
 volatile uint32_t* bcm2835_gpio = (uint32_t*)BCM2835_GPIO_BASE;
@@ -587,7 +586,7 @@ void tx_string(void) {
 	}
 	uart_tx_on();
 /*	
-	while (rxbuff_b == rxbuff_e) {				//neverending a's mode
+	while (rxbuff_b == rxbuff_e) {				//neverending a's transmit mode
 		txbuff[txbuff_e] = 'a';
 		txbuff_e++;
 		if (txbuff_e >= txbuffsize) {txbuff_e = 0;}	
@@ -597,7 +596,7 @@ void tx_string(void) {
 }
 
 void buff_print(void) {
-	while (rxbuff_b != rxbuff_e) {
+	while (rxbuff_b != rxbuff_e) {				//Echo entire rx buffer to tx, one character at a time
 		uart_putc(rxbuff[rxbuff_b]);
 		rxbuff_b++;
 		if (rxbuff_b >= rxbuffsize) {rxbuff_b = 0;}
@@ -607,28 +606,21 @@ void buff_print(void) {
 
 void buff_readline(char *s, int n) {
 	int i = 0;
-	char c = buff_readc();
-	while (c != '\r' && c != '\n' && i < n) {
+	char c = buff_readc();						
+	while (c != '\r' && c != '\n' && i < n) {	//Read from buffer until newline or out of space
 		s[i] = c;
-		uart_putc(s[i]);
+		uart_putc(s[i]);							//Echo recieved character
 		i++;
 		c=buff_readc();
 	}
-	while (i < n) {
+	while (i < n) {								//Fill remaining string with termination character
 		s[i] = '\0';
 		i++;
 	}
 }
 
-void uart_putString(char *s, int n) {
-	for (int i=0;i<n;i++) {
-		if (s[i]=='\0') {break;}
-		uart_putc(s[i]);
-	}
-}
-
 char buff_readc(void) {
-	while (rxbuff_b == rxbuff_e) {
+	while (rxbuff_b == rxbuff_e) {				//Wait until buffer is nonempty
 				
 	}
 	char c = rxbuff[rxbuff_b];
@@ -637,25 +629,6 @@ char buff_readc(void) {
 
 	return c;	
 }
-
-/*
-void testFunc() {
-	char numArray[15] = "";
-	int num1 = 9558437;
-	
-	toString(num1, numArray);
-	
-	int i;
-	for(i = 1; i <= log_10(num1); i++) {
-		printnum(numArray[i]);
-	}
-}
-*/
-
-//void printnum(char c) {
-//	int write(int, char *, int);
-//	(void) write (1, &c, 1);
-//}
 
 void toString(int num, char* numArray) {
 	int neg = 0;
