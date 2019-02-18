@@ -91,13 +91,13 @@ void uart_init()
     mmio_write(UART0_IBRD, 1);
     mmio_write(UART0_FBRD, 40);
  
-    // Disable FIFO. Make 8 bit data transmission (1 stop bit, no parity).		//Set bit 4 to 1 to enable FIFO
+    // Disable FIFO. Make 8 bit data transmission (1 stop bit, no parity). Set bit 4 to 1 to enable FIFO
     mmio_write(UART0_LCRH, (1 << 5) | (1 << 6));
  
     // Set FIFO interrupt levels, Page 187
     //mmio_write(UART0_IFLS, (0<<0) | (0<<1) | (0<<2) | (0<<3) | (0<<4) | (0<<5));
  
-    // Engineer the Interrupt for UART0 Receive						//Enable interrupt for UART0 TX
+    // Engineer the Interrupt for UART0 Receive				//Enable interrupt for UART0 TX
     mmio_write(UART0_IMSC, (1 << 4));
  
     // Enable UART0, receive & transfer part of UART.
@@ -120,13 +120,13 @@ void uart_putc(uint8_t byte)
     }
 	
     int interrupt = 0; 
-    if ((mmio_read(UART0_IMSC) & (1<<5)) == (1<<5)) {	//Check if tx interrupt is on in interrupt mask 
+    if ((mmio_read(UART0_IMSC) & (1<<5)) == (1<<5)) {			//Check if tx interrupt is on in interrupt mask 
 		interrupt = 1;
-		uart_tx_off(); 										//Turn off tx interrupt while writing to buffer
+		uart_tx_off(); 						//Turn off tx interrupt while writing to buffer
 	}
     mmio_write(UART0_DR, byte);
     if (interrupt == 1) { 
-		uart_tx_on();											//Reenable tx interrupt if disabled
+		uart_tx_on();						//Reenable tx interrupt if disabled
 	}
 }
 
