@@ -529,13 +529,13 @@ void kernel_main()
 		uart_putString(inpt,16);
 				
 		/*
-		if (rxbuff_e != rxbuff_b) {							//If buffer isn't empty
-			if (rxbuff_e < rxbuff_b) {						//If buffer has wrapped around (circular buffer)
+		if (rxbuff_e != rxbuff_b) {					//If buffer isn't empty
+			if (rxbuff_e < rxbuff_b) {				//If buffer has wrapped around (circular buffer)
 				if ((255 - rxbuff_b) + rxbuff_e > 5) {		//If buffer has more than 5 elements
 					buff_read();									
 				}
 			} else {
-				if (rxbuff_e - rxbuff_b > 5) {				//If buffer has more than 5 elements
+				if (rxbuff_e - rxbuff_b > 5) {			//If buffer has more than 5 elements
 					buff_read();
 				}
 			}		
@@ -565,7 +565,7 @@ void irq_handler(void)
 	//} else if (itrpt == 1 || itrpt == 3) {
 		while (uart_buffchk('r') != 0) {
 			rxbuff[rxbuff_e]  = uart_readc();
-			//uart_putc(rxbuff[rxbuff_e]);							//Echo test
+			//uart_putc(rxbuff[rxbuff_e]);					//Echo test
 			rxbuff_e++;
 			if (rxbuff_e >= rxbuffsize) {rxbuff_e = 0;}
 		}
@@ -586,8 +586,8 @@ void tx_string(void) {
 	}
 	uart_tx_on();
 /*	
-	while (rxbuff_b == rxbuff_e) {				//neverending a's transmit mode
-		txbuff[txbuff_e] = 'a';
+	while (rxbuff_b == rxbuff_e) {						//neverending a's transmit mode
+		txbuff[txbuff_e] = 'a';						
 		txbuff_e++;
 		if (txbuff_e >= txbuffsize) {txbuff_e = 0;}	
 		uart_tx_on();
@@ -596,7 +596,7 @@ void tx_string(void) {
 }
 
 void buff_print(void) {
-	while (rxbuff_b != rxbuff_e) {				//Echo entire rx buffer to tx, one character at a time
+	while (rxbuff_b != rxbuff_e) {						//Echo entire rx buffer to tx, one character at a time
 		uart_putc(rxbuff[rxbuff_b]);
 		rxbuff_b++;
 		if (rxbuff_b >= rxbuffsize) {rxbuff_b = 0;}
@@ -607,9 +607,9 @@ void buff_print(void) {
 void buff_readline(char *s, int n) {
 	int i = 0;
 	char c = buff_readc();						
-	while (c != '\r' && c != '\n' && i < n) {					//Read from buffer until newline or out of space
+	while (c != '\r' && c != '\n' && i < n) {				//Read from buffer until newline or out of space
 		s[i] = c;
-		uart_putc(s[i]);							//Echo recieved character
+		uart_putc(s[i]);						//Echo recieved character
 		i++;
 		c=buff_readc();
 	}
